@@ -1,15 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
+// import AsyncStorage from '@react-native-async-storage/async-storage'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Settings() {
-  const storeData = async (value: string) => {
-    try {
-      await AsyncStorage.setItem('save-to', value)
-    } catch (e) {
-      // saving error
-    }
-  }
+  // const storeData = async (value: string) => {
+  //   try {
+  //     await AsyncStorage.setItem('save-to', value)
+  //   } catch (e) {
+  //     // saving error
+  //   }
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,7 +17,8 @@ export default function Settings() {
 
       <View>
         <Text style={styles.label}>Save to:</Text>
-        <TextInput style={styles.input} onChangeText={storeData} />
+        <TextInput style={styles.input} />
+        {/* <TextInput style={styles.input} onChangeText={storeData} /> */}
       </View>
     </SafeAreaView>
   )
