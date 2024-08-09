@@ -1,47 +1,25 @@
-// import AsyncStorage from '@react-native-async-storage/async-storage'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { storage } from '@/storage'
+import { StatusBar } from 'expo-status-bar'
+import { Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import tw from 'twrnc'
 
 export default function Settings() {
-  // const storeData = async (value: string) => {
-  //   try {
-  //     await AsyncStorage.setItem('save-to', value)
-  //   } catch (e) {
-  //     // saving error
-  //   }
-  // }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+    <>
+      <SafeAreaView style={tw`h-full px-4 py-2`}>
+        <Text style={tw`font-semibold text-2xl`}>Settings</Text>
 
-      <View>
-        <Text style={styles.label}>Save to:</Text>
-        <TextInput style={styles.input} />
-        {/* <TextInput style={styles.input} onChangeText={storeData} /> */}
-      </View>
-    </SafeAreaView>
+        <View style={tw`size-full mt-4`}>
+          <Text style={tw`font-medium text-base`}>Save to:</Text>
+          <TextInput
+            style={tw`px-4 py-1.4 rounded-md border mt-2`}
+            onChangeText={(e) => storage.set('saveLocation', e)}
+            defaultValue={storage.getString('saveLocation') ?? 'First Place'}
+          />
+        </View>
+      </SafeAreaView>
+      <StatusBar backgroundColor='black' style='light' />
+    </>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  label: {
-    marginTop: 20,
-    fontWeight: 'bold',
-  },
-  input: {
-    borderColor: 'black',
-    borderWidth: 2,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    marginTop: 8,
-  },
-})

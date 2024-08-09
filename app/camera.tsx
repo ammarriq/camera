@@ -1,77 +1,79 @@
+import icons from '@/constants/icons'
+import { useAppState } from '@/hooks'
+import { storage } from '@/storage'
 import { CameraRoll } from '@react-native-camera-roll/camera-roll'
 import { Link, Redirect } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 import { useRef } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Image, Pressable, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   Camera as CameraDevice,
   getCameraFormat,
   useCameraDevice,
   useCameraPermission,
 } from 'react-native-vision-camera'
+import tw from 'twrnc'
 
 export default function Camera() {
   const camera = useRef<CameraDevice>(null)
   const { hasPermission } = useCameraPermission()
 
-  const device = useCameraDevice('back')
+  const device = useCameraDevice('front')
   const format = getCameraFormat(device!, [])
+
+  const appState = useAppState()
+
+  const takePhoto = async () => {
+    const file = await camera.current?.takePhoto()
+
+    CameraRoll.saveAsset(`file://${file?.path}`, {
+      type: 'photo',
+      album: storage.getString('saveLocation') ?? 'First Place',
+    })
+  }
 
   if (!device || !hasPermission) return <Redirect href='/' />
 
-  console.log(format)
-
   return (
-    // <View style={styles.relative}>
     <>
-      <CameraDevice
-        ref={camera}
-        style={StyleSheet.absoluteFill}
-        device={device}
-        format={format}
-        photoQualityBalance='quality'
-        enableZoomGesture
-        isActive
-        photo
-      />
-
-      <Link style={styles.settings} href='/settings'></Link>
-
-      <View style={styles.center}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={async () => {
-            const file = await camera.current?.takePhoto()
-            await CameraRoll.saveAsset(`file://${file?.path}`, {
-              type: 'photo',
-              album: 'First Place',
-            })
-          }}
+      <SafeAreaView style={tw`h-full`}>
+        <CameraDevice
+          ref={camera}
+          style={StyleSheet.absoluteFill}
+          device={device}
+          format={format}
+          isActive={appState === 'active'}
+          photoQualityBalance='quality'
+          enableZoomGesture
+          photo
         />
-      </View>
+
+        <View style={tw`bg-black/50 justify-end h-14 w-full px-6 pb-3`}>
+          <Link style={tw`items-center justify-center h-8`} href='/settings'>
+            <Image
+              source={icons.settings}
+              style={tw`size-6`}
+              resizeMode='center'
+            />
+          </Link>
+        </View>
+
+        <View style={tw`grow justify-end`}>
+          <View style={tw`justify-center items-center bg-black/50 h-40`}>
+            <Pressable onPress={takePhoto}>
+              {({ pressed }) => (
+                <View
+                  style={tw`border-[6px] border-white rounded-full
+                ${pressed ? 'size-14' : 'size-16'}`}
+                />
+              )}
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+
+      <StatusBar backgroundColor='rgba(0, 0, 0, 0.5)' style='light' />
     </>
-    // </View>
   )
 }
-
-const styles = StyleSheet.create({
-  button: {
-    width: 60,
-    height: 60,
-    borderRadius: 100,
-    backgroundColor: 'red',
-    marginBottom: 20,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  settings: {
-    width: 40,
-    height: 40,
-    borderRadius: 100,
-    backgroundColor: 'red',
-    marginTop: 40,
-    marginLeft: 40,
-  },
-})
