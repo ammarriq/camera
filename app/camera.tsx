@@ -1,11 +1,12 @@
-import icons from '@/constants/icons'
 import { useAppState } from '@/hooks'
+import { Settings } from '@/icons'
 import { storage } from '@/storage'
 import { CameraRoll } from '@react-native-camera-roll/camera-roll'
+import { useIsFocused } from '@react-navigation/native'
 import { Link, Redirect } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { useRef } from 'react'
-import { Image, Pressable, StyleSheet, View } from 'react-native'
+import { useRef, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   Camera as CameraDevice,
@@ -18,19 +19,31 @@ import tw from 'twrnc'
 export default function Camera() {
   const camera = useRef<CameraDevice>(null)
   const { hasPermission } = useCameraPermission()
+  const [isCapturing, setIsCapturing] = useState(false)
 
   const device = useCameraDevice('front')
   const format = getCameraFormat(device!, [])
 
+  const isFocused = useIsFocused()
   const appState = useAppState()
+  const isActive = isFocused && appState === 'active'
 
   const takePhoto = async () => {
-    const file = await camera.current?.takePhoto()
+    if (isCapturing) return
 
-    CameraRoll.saveAsset(`file://${file?.path}`, {
-      type: 'photo',
-      album: storage.getString('saveLocation') ?? 'First Place',
-    })
+    try {
+      setIsCapturing(true)
+
+      const file = await camera.current?.takePhoto({ enableShutterSound: true })
+      await CameraRoll.saveAsset(`file://${file?.path}`, {
+        type: 'photo',
+        album: storage.getString('saveLocation') ?? 'First Place',
+      })
+
+      setIsCapturing(false)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   if (!device || !hasPermission) return <Redirect href='/' />
@@ -43,19 +56,15 @@ export default function Camera() {
           style={StyleSheet.absoluteFill}
           device={device}
           format={format}
-          isActive={appState === 'active'}
-          photoQualityBalance='quality'
+          isActive={isActive}
+          photoQualityBalance='speed'
           enableZoomGesture
           photo
         />
 
         <View style={tw`bg-black/50 justify-end h-14 w-full px-6 pb-3`}>
-          <Link style={tw`items-center justify-center h-8`} href='/settings'>
-            <Image
-              source={icons.settings}
-              style={tw`size-6`}
-              resizeMode='center'
-            />
+          <Link href='/settings'>
+            <Settings style={tw`text-white size-6`} strokeWidth={1.25} />
           </Link>
         </View>
 
@@ -65,7 +74,7 @@ export default function Camera() {
               {({ pressed }) => (
                 <View
                   style={tw`border-[6px] border-white rounded-full
-                ${pressed ? 'size-14' : 'size-16'}`}
+                  ${pressed && !isCapturing ? 'size-14' : 'size-16'}`}
                 />
               )}
             </Pressable>
