@@ -7,49 +7,40 @@ import {
   Text,
   View,
 } from 'react-native'
+import { useCameraPermission } from 'react-native-vision-camera'
 import tw from 'twrnc'
 
 SplashScreen.preventAutoHideAsync()
 
 export default function Index() {
+  const { hasPermission, requestPermission } = useCameraPermission()
   const { check, request, PERMISSIONS } = PermissionsAndroid
 
-  const [hasPermissions, setHasPermissions] = useState({
-    camera: false,
-    media: false,
-  })
+  const [hasMediaPermission, setHasMediaPermission] = useState(false)
+
+  useEffect(() => {
+    if (!hasPermission) requestPermission()
+  }, [])
 
   useEffect(() => {
     async function getCameraPermissions() {
-      const hasCameraPermission = check(PERMISSIONS.CAMERA)
-      const hasMediaPermission = check(PERMISSIONS.READ_MEDIA_IMAGES)
+      const hasMediaPermission = await check(PERMISSIONS.READ_MEDIA_IMAGES)
+      if (!hasMediaPermission) await request(PERMISSIONS.READ_MEDIA_IMAGES)
 
-      const [camera, media] = await Promise.all([
-        hasCameraPermission,
-        hasMediaPermission,
-      ])
-
+      setHasMediaPermission(hasMediaPermission)
       SplashScreen.hideAsync()
-      if (camera && media) setHasPermissions((prev) => ({ media, camera }))
-
-      const getCamera = camera ? true : request(PERMISSIONS.CAMERA)
-      const getMedia = media ? true : request(PERMISSIONS.READ_MEDIA_IMAGES)
-
-      await Promise.all([getCamera, getMedia])
     }
 
     getCameraPermissions()
   }, [])
 
-  if (hasPermissions.camera && hasPermissions.media) {
-    return <Redirect href='/camera' />
-  }
+  if (hasPermission && hasMediaPermission) return <Redirect href='/camera' />
 
   return (
     <View style={tw`grow items-center justify-center`}>
       <Text> No Permissions:</Text>
-      {!hasPermissions.camera ? <Text> Camera</Text> : null}
-      {!hasPermissions.media ? <Text> Media</Text> : null}
+      {!hasPermission ? <Text> Camera</Text> : null}
+      {!hasMediaPermission ? <Text> Media</Text> : null}
 
       <Pressable onPress={() => Linking.openSettings()}>
         <Text> Open settings</Text>
