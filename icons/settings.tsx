@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Svg, { G, Path, SvgProps } from 'react-native-svg'
 
-export function Settings(props: SvgProps) {
+export function SettingsIcon(props: SvgProps) {
   return (
     <Svg viewBox='0 0 24 24' strokeWidth={1.5} {...props}>
       <G
