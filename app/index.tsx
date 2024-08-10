@@ -1,28 +1,59 @@
-import { Redirect } from 'expo-router'
-import { useEffect } from 'react'
-import { Linking, StyleSheet, Text } from 'react-native'
-import { useCameraPermission } from 'react-native-vision-camera'
+import { Redirect, SplashScreen } from 'expo-router'
+import { useEffect, useState } from 'react'
+import {
+  Linking,
+  PermissionsAndroid,
+  Pressable,
+  Text,
+  View,
+} from 'react-native'
+import tw from 'twrnc'
+
+SplashScreen.preventAutoHideAsync()
 
 export default function Index() {
-  const { hasPermission, requestPermission } = useCameraPermission()
+  const { check, request, PERMISSIONS } = PermissionsAndroid
+
+  const [hasPermissions, setHasPermissions] = useState({
+    camera: false,
+    media: false,
+  })
 
   useEffect(() => {
-    async function getPermissions() {
-      const result = await requestPermission()
-      if (!result) Linking.openSettings()
+    async function getCameraPermissions() {
+      const hasCameraPermission = check(PERMISSIONS.CAMERA)
+      const hasMediaPermission = check(PERMISSIONS.READ_MEDIA_IMAGES)
+
+      const [camera, media] = await Promise.all([
+        hasCameraPermission,
+        hasMediaPermission,
+      ])
+
+      SplashScreen.hideAsync()
+      if (camera && media) setHasPermissions((prev) => ({ media, camera }))
+
+      const getCamera = camera ? true : request(PERMISSIONS.CAMERA)
+      const getMedia = media ? true : request(PERMISSIONS.READ_MEDIA_IMAGES)
+
+      await Promise.all([getCamera, getMedia])
     }
 
-    getPermissions()
+    getCameraPermissions()
   }, [])
 
-  if (hasPermission) return <Redirect href='/camera' />
-  return <Text style={styles.center}>No Permissions</Text>
-}
+  if (hasPermissions.camera && hasPermissions.media) {
+    return <Redirect href='/camera' />
+  }
 
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-})
+  return (
+    <View style={tw`grow items-center justify-center`}>
+      <Text> No Permissions:</Text>
+      {!hasPermissions.camera ? <Text> Camera</Text> : null}
+      {!hasPermissions.media ? <Text> Media</Text> : null}
+
+      <Pressable onPress={() => Linking.openSettings()}>
+        <Text> Open settings</Text>
+      </Pressable>
+    </View>
+  )
+}

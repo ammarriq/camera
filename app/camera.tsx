@@ -72,9 +72,9 @@ export default function Camera() {
         <View
           style={tw`mt-auto justify-between flex-row items-center bg-black/50 h-40 px-8`}
         >
-          <Pressable onPress={takePhoto}>
+          <Link href='/media'>
             <ImageIcon style={tw`text-white size-7`} strokeWidth={1.25} />
-          </Pressable>
+          </Link>
 
           <Pressable onPress={takePhoto}>
             {({ pressed }) => (
