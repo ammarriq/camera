@@ -10,11 +10,11 @@ import {
 import { useCameraPermission } from 'react-native-vision-camera'
 import tw from 'twrnc'
 
-SplashScreen.preventAutoHideAsync()
+// SplashScreen.preventAutoHideAsync()
 
 export default function Index() {
   const { hasPermission, requestPermission } = useCameraPermission()
-  const { check, request, PERMISSIONS } = PermissionsAndroid
+  // const { check, request, PERMISSIONS, RESULTS } = PermissionsAndroid
 
   const [hasMediaPermission, setHasMediaPermission] = useState(false)
 
@@ -22,19 +22,20 @@ export default function Index() {
     if (!hasPermission) requestPermission()
   }, [])
 
-  useEffect(() => {
-    async function getCameraPermissions() {
-      const hasMediaPermission = await check(PERMISSIONS.READ_MEDIA_IMAGES)
-      if (!hasMediaPermission) await request(PERMISSIONS.READ_MEDIA_IMAGES)
+  // useEffect(() => {
+  //   async function getCameraPermissions() {
+  //     const hasMediaPermission = await check(PERMISSIONS.READ_MEDIA_IMAGES)
+  //     if (!hasMediaPermission) await request(PERMISSIONS.READ_MEDIA_IMAGES)
 
-      setHasMediaPermission(hasMediaPermission)
-      SplashScreen.hideAsync()
-    }
+  //     setHasMediaPermission(hasMediaPermission)
+  //     SplashScreen.hideAsync()
+  //   }
 
-    getCameraPermissions()
-  }, [])
+  //   getCameraPermissions()
+  // }, [])
 
-  if (hasPermission && hasMediaPermission) return <Redirect href='/camera' />
+  // if (hasPermission && hasMediaPermission) return <Redirect href='/camera' />
+  if (hasPermission) return <Redirect href='/camera' />
 
   return (
     <View style={tw`grow items-center justify-center`}>
